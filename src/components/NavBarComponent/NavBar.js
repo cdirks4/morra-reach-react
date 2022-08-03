@@ -1,8 +1,10 @@
 import React, { useRef, useState } from 'react';
 import { loadStdlib } from '@reach-sh/stdlib';
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from '@reach-sh/stdlib';
-import { Col, Button, Row } from 'react-bootstrap';
-
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { Col, Row } from 'react-bootstrap';
+import Button from 'react-bootstrap/Button';
+import FundAccount from './FundAccount';
 const reach = loadStdlib('ALGO');
 
 reach.setWalletFallback(
@@ -12,11 +14,13 @@ reach.setWalletFallback(
 	})
 );
 
-const NavBarComponent = ({}) => {
-	const acc = useRef();
-	const bal = useRef();
-	const [balance, setBalance] = useState(null);
-	const [address, setAddress] = useState('');
+const NavBarComponent = ({
+	getBalance,
+	getAccount,
+	balance,
+	address,
+	setBalance,
+}) => {
 	const connectWallet = async () => {
 		try {
 			await getAccount();
@@ -25,30 +29,31 @@ const NavBarComponent = ({}) => {
 			console.log(err);
 		}
 	};
-	const getAccount = async () => {
-		try {
-			acc.current = await reach.getDefaultAccount();
-			setAddress(acc.current.networkAccount.addr);
-			console.log('Account :' + acc.current.networkAccount.addr);
-		} catch (err) {
-			console.log(err);
-		}
-	};
 
-	const getBalance = async () => {
-		try {
-			let rawBalance = await reach.balanceOf(acc.current);
-			bal.current = reach.formatCurrency(rawBalance, 4);
-			setBalance(bal.current);
-			console.log('Balance :' + bal.current);
-		} catch (err) {
-			console.log(err);
-		}
-	};
 	return (
-		<Row xs={2} md={4} lg={6}>
-			<Col style={{ backgroundColor: 'black' }}>
-				<Button onClick={connectWallet}>Connect MyAlgo Wallet</Button>
+		<Row>
+			<Col>
+				<Button
+					style={{ maxHeight: '60px', maxWidth: '150px' }}
+					variant='primary'
+					onClick={connectWallet}
+					className='btn-primary'>
+					Connect MyAlgo Wallet
+				</Button>
+			</Col>
+			<Col xs={6}>
+				<FundAccount
+					balance={balance}
+					address={address}
+					setBalance={setBalance}
+					getBalance={getBalance}
+				/>
+			</Col>
+			<Col style={{ padding: '0px' }}>
+				<p2>
+					{balance && address.substring(0, 6)}
+					{balance && `... ${balance}A`}
+				</p2>
 			</Col>
 		</Row>
 	);
