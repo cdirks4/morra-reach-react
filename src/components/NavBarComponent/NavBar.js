@@ -50,10 +50,12 @@ const NavBarComponent = ({
 				/>
 			</Col>
 			<Col style={{ padding: '0px' }}>
-				<p2>
-					{balance && address.substring(0, 6)}
-					{balance && `... ${balance}A`}
-				</p2>
+				{balance && (
+					<p>
+						{address.substring(0, 6)}
+						... {balance}A
+					</p>
+				)}
 			</Col>
 		</Row>
 	);
