@@ -1,6 +1,6 @@
 import React, { Fragment } from 'react';
 import { Container, Row, Col } from 'react-bootstrap';
-import { Routes, Route, Switch } from 'react-router-dom';
+import { Routes, Route, Switch, useNavigate } from 'react-router-dom';
 
 import { useState, useRef, useEffect } from 'react';
 import NavBarComponent from './components/NavBarComponent/NavBar';
@@ -8,27 +8,39 @@ import { loadStdlib } from '@reach-sh/stdlib';
 import Game from './components/Game/Game';
 import Deployer from './components/Game/Deployer';
 import Attacher from './components/Game/Attacher';
+import Waiting from './components/Game/Waiting';
+import Outcome from './components/Game/Outcome';
 const reach = loadStdlib('ALGO');
 const App = () => {
 	const acc = useRef();
 	const bal = useRef();
 	const [account, setAccount] = useState();
+	const [attacher, setAttacher] = useState();
 	const [balance, setBalance] = useState(null);
 	const [address, setAddress] = useState('');
-	const getAccount = async () => {
+	const getAccount = async (location) => {
+		console.log(location);
 		try {
-			acc.current = await reach.getDefaultAccount();
+			acc.current = await reach.newTestAccount(reach.parseCurrency(100));
+
 			setAddress(acc.current.networkAccount.addr);
-			setAccount(acc.current);
+			// acc.current = await reach.getDefaultAccount();
+
+			// setAddress(acc.current.networkAccount.addr);
+			location === '/deployer'
+				? setAccount(acc.current)
+				: setAttacher(acc.current);
 			console.log('Account :' + acc.current.networkAccount.addr);
 		} catch (err) {
 			console.log(err);
 		}
 	};
 
-	const getBalance = async () => {
+	const getBalance = async (account = undefined) => {
 		try {
-			let rawBalance = await reach.balanceOf(acc.current);
+			let rawBalance = account
+				? await reach.balanceOf(acc.current)
+				: await reach.balanceOf(acc.current);
 			bal.current = reach.formatCurrency(rawBalance, 4);
 			setBalance(bal.current);
 			console.log('Balance :' + bal.current);
@@ -55,7 +67,19 @@ const App = () => {
 				<Route
 					exact
 					path='/attacher'
-					element={<Attacher account={account} />}></Route>
+					element={
+						<Attacher attacher={attacher} getBalance={getBalance} />
+					}></Route>
+				<Route
+					exact
+					path='/waiting'
+					element={<Waiting account={account} />}></Route>
+				<Route
+					exact
+					path='/outcome'
+					element={
+						<Outcome account={account} getBalance={getBalance} />
+					}></Route>
 			</Routes>
 		</Container>
 	);

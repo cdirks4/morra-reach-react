@@ -1,4 +1,5 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { loadStdlib } from '@reach-sh/stdlib';
 import { ALGO_MyAlgoConnect as MyAlgoConnect } from '@reach-sh/stdlib';
 import 'bootstrap/dist/css/bootstrap.min.css';
@@ -9,8 +10,8 @@ const reach = loadStdlib('ALGO');
 
 reach.setWalletFallback(
 	reach.walletFallback({
-		providerEnv: 'TestNet',
-		MyAlgoConnect,
+		// providerEnv: 'TestNet',
+		// MyAlgoConnect,
 	})
 );
 
@@ -21,10 +22,13 @@ const NavBarComponent = ({
 	address,
 	setBalance,
 }) => {
+	let location = useLocation();
+
 	const connectWallet = async () => {
 		try {
-			await getAccount();
-			await getBalance();
+			console.log(location);
+			await getAccount(location.pathname);
+			await getBalance(location.pathname);
 		} catch (err) {
 			console.log(err);
 		}

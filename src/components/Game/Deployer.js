@@ -1,35 +1,71 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Form, Card, Button } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import * as backend from '../build/index.main.mjs';
 import { loadStdlib } from '@reach-sh/stdlib';
+import outcome from './Outcome.js';
 const reach = loadStdlib(process.env);
 const handToInt = { ROCK: 0, PAPER: 1, SCISSORS: 2 };
 const intToOutcome = ['Bob wins!', 'Draw!', 'Alice wins!'];
 const Deployer = ({ account }) => {
 	// const [hand, setHand] = useState(reach.parseCurrency(1));
+	const [resolve, setResolve] = useState(null);
+	const handRef = useRef();
 	const [ctcInfo, setCtcInfo] = useState(null);
 	const info = useRef();
-	const wager = useRef();
+	const amount = useRef();
 	let navigate = useNavigate();
-	const getWager = () => {};
+	const [wager, setWager] = useState([{ value: null }]);
+	const [hand, setHand] = useState(null);
+	// const handleHand = async () => {
+	// 	try {
+	// 		console.log('waiting');
+	// 		let promise1 = await new Promise((resolve, reject) => {
+	// 			// reject('No input yet');
+	// 			resolve(1);
+	// 		});
+	// 		console.log(promise1);
+	// 		return promise1;
+	// 	} catch (error) {
+	// 		console.log(error);
+	// 	}
+	// };
+	const handleHand = useCallback(async () => {
+		try {
+			console.log('turned on', 'hand', hand);
+			const promise1 = await new Promise((resolve) => {
+				let parsedHand = hand;
+				setResolve({ resolve: resolve });
+				console.log(hand, resolve);
+			});
+			return promise1;
+		} catch (error) {
+			console.log(error);
+		}
+	}, [hand]);
+
 	const handleSubmit = async (e) => {
 		e.preventDefault(e);
 		console.log(e.target?.value);
 		console.log(account);
 
+		console.log(amount.current.value);
+
 		// wager.current = reach.parseCurrency(wager.current);
 		const contract = await account.contract(backend);
 		const interact = {
-			wager: reach.parseCurrency(wager.current.value),
-			deadline: { ETH: 10, ALGO: 100, CFX: 1000 }[reach.connector],
-			informTimeout: async () => {
-				console.log('timedOut');
+			random: () => {
+				return reach.hasRandom.random();
 			},
-			getHand: async (res) => {
-				console.log(res);
-				console.log('get hand');
-				return 2;
+			deadline: { ETH: 10, ALGO: 100, CFX: 1000 }[reach.connector],
+
+			informTimeout: async () => {
+				navigate('/timeout', { replace: true });
+			},
+			wager: reach.parseCurrency(amount.current.value),
+			getHand: handleHand,
+			seeOutcome: (outcome) => {
+				console.log('outcome', outcome);
 			},
 		};
 		backend.Alice(contract, interact);
@@ -37,6 +73,7 @@ const Deployer = ({ account }) => {
 		console.log(ctcInfoStr);
 		setCtcInfo(ctcInfoStr);
 	};
+
 	return (
 		<Card>
 			<Card.Header>Deployer</Card.Header>
@@ -44,6 +81,7 @@ const Deployer = ({ account }) => {
 				<Card.Title style={{ textAlign: 'center' }}>
 					Choose your hand
 				</Card.Title>
+
 				<Form
 					style={{
 						display: 'grid',
@@ -59,14 +97,19 @@ const Deployer = ({ account }) => {
 						Set your wager:
 					</Form.Label>
 					<Form.Control
-						ref={wager}
+						ref={amount}
 						placeholder='wager'
 						style={{ display: 'grid', maxWidth: '200px', maxHeight: '40px' }}
 					/>
 					<div></div>
 					<div></div>
 					<div></div>
-					<Button></Button>
+					<Button
+						onClick={(e) => {
+							handleSubmit(e);
+						}}>
+						deploy
+					</Button>
 				</Form>
 				<div
 					style={{
@@ -74,21 +117,39 @@ const Deployer = ({ account }) => {
 						display: 'flex',
 						justifyContent: 'space-between',
 					}}>
-					<Button variant='secondary' target='rock'>
+					<Button
+						variant='secondary'
+						target='rock'
+						value='0'
+						onClick={() => {
+							setHand(0);
+						}}>
 						Rock
 					</Button>
+
 					<Button
-						value=' paper'
+						value='1'
 						variant='success'
 						id='paper'
-						onClick={(e) => handleSubmit(e)}>
+						onClick={(e) => {
+							setHand(1);
+						}}>
 						Paper
 					</Button>
 					<Button
+						value='2'
 						variant='danger'
 						className='scissors'
-						onClick={(e) => handleSubmit(e)}>
+						onClick={(e) => {
+							setHand(2);
+						}}>
 						Scissors
+					</Button>
+					<Button
+						onClick={() => {
+							resolve.resolve(hand);
+						}}>
+						Submit Choice
 					</Button>
 				</div>
 			</Card.Body>

@@ -1,46 +1,80 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import { Form, Card, Button } from 'react-bootstrap';
 import * as backend from '../build/index.main.mjs';
 import { loadStdlib } from '@reach-sh/stdlib';
-import AcceptWager from './AcceptWager.js';
+import { useNavigate } from 'react-router-dom';
 const reach = loadStdlib('ALGO');
-const Attacher = ({ account }) => {
-	const [wager, setWager] = useState(null);
+
+const Attacher = ({ attacher, setOutcome }) => {
+	const [hand, setHand] = useState(null);
+	const handRef = useRef([{ value: null }]);
+	const [wager, setWager] = useState();
+	const [answer, setAnswer] = useState(false);
+	const [resolve, setResolve] = useState(null);
 	const info = useRef();
-	const [accept, setAccept] = useState(false);
-	const [resolve, setResolve] = useState({ resolve: () => {} });
-	// const [resolve, setResolve] = useState(null);
-	const getWager = () => {};
+	const navigate = useNavigate();
+
 	const handleSubmit = async (e) => {
 		e.preventDefault(e);
 
-		console.log(account);
+		console.log(attacher);
 
 		// wager.current = reach.parseCurrency(wager.current);
+		console.log('info', info);
 
-		// const interact = {
-		// 	wager: reach.parseCurrency(wager.current.value),
-		// 	deadline: { ETH: 10, ALGO: 100, CFX: 1000 }[reach.connector],
-		// };
-		const ctc = account.contract(backend, JSON.parse(info.current.value));
-		console.log(ctc);
+		const interact = {
+			deadline: { ETH: 10, ALGO: 100, CFX: 1000 }[reach.connector],
+		};
+
+		const ctc = attacher.contract(backend, JSON.parse(info.current.value));
+
 		backend.Bob(ctc, {
-			acceptWager: () => resolve.resolve(wager),
-			informTimeOut: () => console.log('timedout'),
+			random: () => {
+				return reach.hasRandom.random();
+			},
+			acceptWager: (wager) => {
+				console.log(parseInt(wager));
+				console.log('accepted');
+			},
+			informTimeout: async () => {
+				console.log('timedOut');
+			},
+			seeOutcome: async (outcome) => {
+				console.log('b', 'd', 'a');
+				console.log(parseInt(outcome));
+			},
+			getHand: handleHand,
 		});
 		console.log(ctc);
 	};
-	const acceptWager = async (wagerAtomic) => {
-		const temp = reach.formatCurrency(wagerAtomic, 4);
-		return await new Promise((resolveAcceptedP) => {
-			setWager(temp);
-			setResolve({ resolve: resolveAcceptedP(wager) });
-		}).catch((err) => {
-			console.log(err);
-		});
-	};
-	console.log(resolve);
-	console.log(accept);
+	useEffect(() => {}, []);
+	// const handleHand = async () => {
+	// 	try {
+	// 		console.log('waiting');
+	// 		let promise = new Promise((resolve) => {
+	// 			// console.log(hand.value);
+	// 			// let temp = hand.value;
+	// 			// setHand({ ...hand, resolve: resolve() });
+	// 			resolve(2);
+	// 		});
+	// 		return promise;
+	// 	} catch (error) {
+	// 		console.log(error);
+	// 	}
+	// };
+	const handleHand = useCallback(async () => {
+		try {
+			console.log("Bob's turn");
+			return await new Promise((resolve) => {
+				let parsedHand = hand;
+				setResolve({ resolve: resolve });
+				console.log(hand, resolve);
+			});
+		} catch (error) {
+			console.log(error);
+		}
+	}, []);
+
 	return (
 		<Card>
 			<Card.Header>Attacher</Card.Header>
@@ -69,12 +103,36 @@ const Attacher = ({ account }) => {
 				</Button>
 				<Button
 					variant='success'
-					id='attach'
-					onClick={() => resolve.resolve(wager)}>
-					accept
+					value='0'
+					onClick={(e) => {
+						setHand(0);
+					}}>
+					rock
 				</Button>
-
-				<AcceptWager />
+				<Button
+					value='1'
+					variant='success'
+					id='attach'
+					onClick={(e) => {
+						setHand(1);
+					}}>
+					paper
+				</Button>
+				<Button
+					value='2'
+					variant='success'
+					id='attach'
+					onClick={() => {
+						setHand(2);
+					}}>
+					scissors
+				</Button>
+				<Button
+					onClick={() => {
+						resolve?.resolve(hand);
+					}}>
+					Submit
+				</Button>
 			</Card.Body>
 		</Card>
 	);
