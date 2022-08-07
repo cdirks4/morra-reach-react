@@ -16,6 +16,7 @@ forall(UInt, (handAlice) =>
 forall(UInt, (hand) => assert(winner(hand, hand) == DRAW));
 
 const Player = {
+	...hasRandom,
 	getHand: Fun([], UInt),
 	seeOutcome: Fun([UInt], Null),
 	informTimeout: Fun([], Null),
@@ -24,7 +25,6 @@ const Player = {
 export const main = Reach.App(() => {
 	const Alice = Participant('Alice', {
 		...Player,
-		...hasRandom,
 		wager: UInt, // atomic units of currency
 		deadline: UInt, // time delta (blocks/rounds)
 	});

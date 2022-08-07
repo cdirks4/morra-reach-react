@@ -1,6 +1,6 @@
 import React from 'react';
 
-const Waiting = () => {
+const Waiting = ({ resolve }) => {
 	return <div></div>;
 };
 

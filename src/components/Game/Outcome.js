@@ -1,7 +1,7 @@
 import React from 'react';
 
-const outcome = ({ outcome }) => {
-	return <div>{outcome == 1 ? `you won` : `you lost`}</div>;
+const outcome = ({ outcome, resolve }) => {
+	return <div>check</div>;
 };
 
 export default outcome;

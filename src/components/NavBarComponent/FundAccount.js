@@ -1,26 +1,20 @@
 import React, { useRef, useState } from 'react';
-import { Form, Row, Button, Col } from 'react-bootstrap';
+import { Form, Row, Button, Col, Navbar } from 'react-bootstrap';
 import { loadStdlib } from '@reach-sh/stdlib';
 const reach = loadStdlib('ALGO');
 
 const FundAccount = ({ address, getBalance }) => {
 	const fundAmount = useRef();
-	const [isLoading, setLoading] = useState(false);
-
 	const handleSubmit = async (e) => {
 		if (!fundAmount.current.value || isNaN(fundAmount.current.value))
 			throw 'Cannot fund this value';
-		console.log(address);
 		try {
-			setLoading(true);
-			let wait = await reach.fundFromFaucet(
+			await reach.fundFromFaucet(
 				address,
-				reach.parseCurrency(+fundAmount.current.value)
+				reach.parseCurrency(fundAmount.current.value)
 			);
 			await getBalance();
-			setLoading(false);
 		} catch (err) {
-			setLoading(false);
 			console.log(err);
 		}
 	};
@@ -33,12 +27,22 @@ const FundAccount = ({ address, getBalance }) => {
 					paddingTop: '8px',
 					gridTemplateColumns: '1fr 2fr 1fr',
 				}}>
-				<Form.Label
-					style={{ display: 'grid', fontSize: '10px', paddingTop: '10px' }}>
+				<Form.Text
+					style={{
+						display: 'grid',
+						fontSize: '12px',
+						paddingTop: '5px',
+						color: 'rgb(187,200,210)',
+					}}>
 					Fund Account:
-				</Form.Label>
+				</Form.Text>
 				<Form.Control
-					style={{ display: 'grid', maxWidth: '200px', maxHeight: '40px' }}
+					style={{
+						display: 'grid',
+						maxWidth: '200px',
+						maxHeight: '40px',
+						fontSize: '13px',
+					}}
 					type='amount'
 					ref={fundAmount}
 					placeholder={address ? 'Enter amount' : 'Connect Wallet'}
@@ -46,9 +50,10 @@ const FundAccount = ({ address, getBalance }) => {
 				<Button
 					style={{
 						display: 'grid',
-						fontSize: 'absolute-size',
+
 						maxWidth: '75px',
-						maxHeight: '40px',
+						maxHeight: '35px',
+						fontSize: '13px',
 					}}
 					column='true'
 					onClick={() => handleSubmit()}
