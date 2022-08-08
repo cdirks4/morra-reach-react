@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef } from 'react';
 import { loadStdlib } from '@reach-sh/stdlib';
 import * as backend from './components/build/index.main.mjs';
 import { Container } from 'react-bootstrap';
@@ -7,12 +7,14 @@ import NavBarComponent from './components/NavBarComponent/NavBar';
 import Deploy from './components/Game/Deploy';
 import Outcome from './components/Game/Outcome';
 import RockPaperScissors from './components/Game/RockPaperScissors.js';
-import { useEffect } from 'react';
+
 const reach = loadStdlib('ALGO');
 const App = () => {
-	const [hand, useHand] = useState(null);
+	const [outcome, setOutcome] = useState(null);
+	const [hand, setHand] = useState(null);
+	const [prevGuesses, setPrevGuesses] = useState([]);
 	const [ctcInfo, setCtcInfo] = useState(false);
-	const [show, setShow] = useState(false);
+	const prevRef = useRef(null);
 	const wagerRef = useRef();
 	const [role, setRole] = useState();
 	const acc = useRef();
@@ -21,8 +23,9 @@ const App = () => {
 	const [account, setAccount] = useState();
 	const [balance, setBalance] = useState(null);
 	const [address, setAddress] = useState('');
-	const [resolve, setResolve] = useState([{ resolve: () => {} }]);
+	const [resolve, setResolve] = useState(null);
 	let navigate = useNavigate();
+	const [loading, setLoading] = useState(true);
 	const getAccount = async () => {
 		try {
 			acc.current = await reach.newTestAccount(reach.parseCurrency(100));
@@ -45,19 +48,23 @@ const App = () => {
 		}
 	};
 
-	const handleHand = useCallback(async () => {
+	const handleHand = async () => {
 		try {
 			navigate('/rps');
 			console.log('running');
-			let promise = await new Promise((resolve) => {
+			setLoading(false);
+			let response = await new Promise((resolve) => {
+				prevRef.current = hand;
+				setPrevGuesses({ ...prevGuesses, hand });
+				console.log('resolved');
 				setResolve({ resolve: resolve });
 			});
-
-			return promise;
+			setLoading(true);
+			return response;
 		} catch (error) {
 			console.log(error);
 		}
-	}, [hand]);
+	};
 
 	const createContract = async (ctcRef) => {
 		const player = {
@@ -69,8 +76,10 @@ const App = () => {
 			},
 
 			getHand: handleHand,
-			seeOutcome: () => {
-				console.log('outcome');
+			seeOutcome: (outcome) => {
+				let tempOutcome = parseInt(outcome);
+
+				setOutcome(outcome);
 			},
 		};
 
@@ -95,7 +104,6 @@ const App = () => {
 					...player,
 					acceptWager: (wager) => {
 						setWager(reach.formatCurrency(wager));
-						console.log('wager accepted');
 					},
 				};
 				backend.Bob(ctc, interact);
@@ -105,7 +113,13 @@ const App = () => {
 		}
 	};
 	return (
-		<Container style={{ padding: '0px 0px', maxWidth: '100vw' }}>
+		<Container
+			style={{
+				padding: '0px',
+				maxWidth: '100vw',
+				height: '100vh',
+				backgroundColor: 'grey',
+			}}>
 			<NavBarComponent
 				setAddress={setAddress}
 				setBalance={setBalance}
@@ -138,7 +152,17 @@ const App = () => {
 				<Route
 					exact
 					path='/rps'
-					element={<RockPaperScissors resolve={resolve} />}></Route>
+					element={
+						<RockPaperScissors
+							outcome={outcome}
+							setHand={setHand}
+							hand={hand}
+							resolve={resolve}
+							loading={loading}
+							role={role}
+							prevGuesses={prevGuesses}
+						/>
+					}></Route>
 				<Route
 					exact
 					path='/outcome'

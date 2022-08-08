@@ -13,7 +13,7 @@ const Bob = ({ setRole, show, setShow, setCtcInfo, createContract }) => {
 				backdrop='static'
 				keyboard={false}>
 				<Modal.Header closeButton>
-					<Modal.Title>s</Modal.Title>
+					<Modal.Title>Paste the contract from Alice</Modal.Title>
 				</Modal.Header>
 				<Modal.Body
 					style={{
@@ -34,8 +34,7 @@ const Bob = ({ setRole, show, setShow, setCtcInfo, createContract }) => {
 						variant='success'
 						size='sm'
 						style={{ marginLeft: '10' }}
-						onClick={(e) => {
-							console.log(infoRef.current.value);
+						onClick={() => {
 							setCtcInfo(infoRef.current.value);
 							createContract(infoRef.current.value);
 							setRole('Bob');

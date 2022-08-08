@@ -31,6 +31,7 @@ const FundAccount = ({ address, getBalance }) => {
 					style={{
 						display: 'grid',
 						fontSize: '12px',
+						padding: '0px',
 						paddingTop: '5px',
 						color: 'rgb(187,200,210)',
 					}}>
@@ -39,8 +40,8 @@ const FundAccount = ({ address, getBalance }) => {
 				<Form.Control
 					style={{
 						display: 'grid',
-						maxWidth: '200px',
-						maxHeight: '40px',
+						maxWidth: '160px',
+						maxHeight: '33px',
 						fontSize: '13px',
 					}}
 					type='amount'
@@ -50,9 +51,8 @@ const FundAccount = ({ address, getBalance }) => {
 				<Button
 					style={{
 						display: 'grid',
-
-						maxWidth: '75px',
-						maxHeight: '35px',
+						maxWidth: '70px',
+						maxHeight: '33px',
 						fontSize: '13px',
 					}}
 					column='true'
