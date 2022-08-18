@@ -1,9 +1,8 @@
 import React from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 const Alice = ({
-	balance,
-	address,
-	role,
+	user,
+	setGame,
 	show,
 	setShow,
 	ctcInfo,
@@ -13,7 +12,7 @@ const Alice = ({
 }) => {
 	return (
 		<div>
-			{role === 'Alice' && ctcInfo ? (
+			{user.role === 'Alice' && ctcInfo ? (
 				<Modal
 					style={{ marginTop: '80px' }}
 					show={show}
@@ -55,6 +54,7 @@ const Alice = ({
 							display: 'grid',
 							gridTemplateColumns: '1.5fr 3fr 1fr',
 							alignItems: 'start',
+							paddingBottom: '10px',
 						}}
 						closeButton>
 						<Modal.Title style={{ display: 'grid' }}>Hi Alice </Modal.Title>
@@ -63,25 +63,27 @@ const Alice = ({
 								display: 'grid',
 								paddingBottom: '0px',
 								paddingTop: '7.8px',
-							}}>
-							<p>
-								{address.substring(0, 6)}
-								... {balance}A
-							</p>
-						</Modal.Body>
+							}}></Modal.Body>
 					</Modal.Header>
 					<Modal.Body
 						style={{
 							display: 'grid',
-							gridTemplateColumns: '3.1fr 1fr',
+							gridTemplateColumns: '2fr 1fr 0.5fr',
 						}}>
+						<Form.Select
+							value={user.game}
+							onChange={(e) => setGame(e.target.value)}>
+							<option value={undefined}>Choose your game</option>
+							<option value='rps'>Rock Paper Scissors</option>
+							<option value={'morra'}>Morra</option>
+						</Form.Select>
 						<Form.Control
 							style={{
 								display: 'grid',
 								maxHeight: '40px',
 							}}
 							ref={wagerRef}
-							placeholder='set your wager'
+							placeholder='wager'
 						/>
 						<Button
 							style={{ display: 'grid', maxHeight: '40px' }}

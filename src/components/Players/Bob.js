@@ -1,6 +1,6 @@
 import React, { useRef } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
-const Bob = ({ setRole, show, setShow, setCtcInfo, createContract }) => {
+const Bob = ({ setUser, show, setShow, setCtcInfo, createContract, user }) => {
 	const infoRef = useRef();
 	return (
 		<div>
@@ -37,7 +37,7 @@ const Bob = ({ setRole, show, setShow, setCtcInfo, createContract }) => {
 						onClick={() => {
 							setCtcInfo(infoRef.current.value);
 							createContract(infoRef.current.value);
-							setRole('Bob');
+							setUser({ ...user, role: 'Bob' });
 						}}>
 						{' '}
 						Good Luck!

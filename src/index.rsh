@@ -22,7 +22,7 @@ const Player = {
 	informTimeout: Fun([], Null),
 };
 
-export const main = Reach.App(() => {
+export const rps = Reach.App(() => {
 	const Alice = Participant('Alice', {
 		...Player,
 		wager: UInt, // atomic units of currency
@@ -98,4 +98,140 @@ export const main = Reach.App(() => {
 	each([Alice, Bob], () => {
 		interact.seeOutcome(outcome);
 	});
+});
+
+const [isMORRAOutcome, MA_WINS, MB_WINS, MDRAW] = makeEnum(3);
+const MORRAdeadline = 30;
+
+const MORRAwinner = (totalFingers, aliceGuess, bobGuess) => {
+	if (bobGuess === aliceGuess) {
+		return MDRAW;
+	} else if (totalFingers === bobGuess) {
+		return MB_WINS;
+	} else if (totalFingers === aliceGuess) {
+		return MA_WINS;
+	} else {
+		return MDRAW;
+	}
+};
+// params total alice bob
+// assert(winner(9, 0, 9) == B_WINS);
+// assert(winner(9, 9, 0) == A_WINS);
+// assert(winner(1, 0, 9) == DRAW);
+// assert(winner(10, 10, 10) == DRAW);
+
+// forall(UInt, (total) =>
+// 	forall(UInt, (aliceGuess) =>
+// 		forall(UInt, (bobGuess) =>
+// 			assert(isOutcome(winner(total, aliceGuess, bobGuess)))
+// 		)
+// 	)
+// );
+
+forall(UInt, (total) =>
+	forall(UInt, (incorrectGuess) =>
+		total == incorrectGuess
+			? assert(MORRAwinner(total, incorrectGuess, total) == MDRAW)
+			: assert(MORRAwinner(total, incorrectGuess, total) == MB_WINS)
+	)
+);
+forall(UInt, (total) =>
+	forall(UInt, (incorrectGuess) =>
+		total != incorrectGuess
+			? assert(MORRAwinner(total, total, incorrectGuess) == MA_WINS)
+			: null
+	)
+);
+const MORRAplayer = {
+	...hasRandom,
+	getFingersAndGuess: Fun([], Tuple(UInt, UInt)),
+	seeOutcome: Fun([UInt], Null),
+	informTimeout: Fun([], Null),
+};
+
+export const morra = Reach.App(() => {
+	const Alice = Participant('Alice', {
+		...MORRAplayer,
+		wager: UInt,
+	});
+	const Bob = Participant('Bob', {
+		...MORRAplayer,
+		acceptWager: Fun([UInt], Null),
+	});
+	init();
+
+	const informTimeout = () => {
+		each([Alice, Bob], () => {
+			interact.informTimeout();
+		});
+	};
+
+	Alice.only(() => {
+		const wager = declassify(interact.wager);
+	});
+	Alice.publish(wager).pay(wager);
+	commit();
+
+	Bob.only(() => {
+		interact.acceptWager(wager);
+	});
+	Bob.publish().pay(wager);
+
+	var outcome = MDRAW;
+	invariant(balance() == 2 * wager);
+	while (outcome == MDRAW) {
+		commit();
+
+		Alice.only(() => {
+			const [_aliceFingers, _aliceGuess] = interact.getFingersAndGuess();
+
+			const [_commitA, _saltA] = makeCommitment(interact, _aliceFingers);
+			const commitA = declassify(_commitA);
+
+			const [_guessCommitA, _guessSaltA] = makeCommitment(
+				interact,
+				_aliceGuess
+			);
+			const guessCommitA = declassify(_guessCommitA);
+		});
+		Alice.publish(commitA, guessCommitA).timeout(
+			relativeTime(MORRAdeadline),
+			() => closeTo(Bob, informTimeout)
+		);
+		commit();
+
+		Bob.only(() => {
+			const [bobFingers, bobGuess] = declassify(interact.getFingersAndGuess());
+		});
+		Bob.publish(bobFingers, bobGuess).timeout(relativeTime(MORRAdeadline), () =>
+			closeTo(Alice, informTimeout)
+		);
+		commit();
+
+		Alice.only(() => {
+			const [saltA, aliceFingers] = declassify([_saltA, _aliceFingers]);
+			const [guessSaltA, aliceGuess] = declassify([_guessSaltA, _aliceGuess]);
+		});
+		Alice.publish(saltA, aliceFingers, guessSaltA, aliceGuess).timeout(
+			relativeTime(MORRAdeadline),
+			() => closeTo(Bob, informTimeout)
+		);
+		checkCommitment(commitA, saltA, aliceFingers);
+		checkCommitment(guessCommitA, guessSaltA, aliceGuess);
+		commit();
+
+		Alice.publish();
+		const totalFingers = aliceFingers + bobFingers;
+		outcome = MORRAwinner(totalFingers, aliceGuess, bobGuess);
+		continue;
+	}
+
+	transfer(balance()).to(outcome == MA_WINS ? Alice : Bob);
+	commit();
+
+	each([Alice, Bob], () => {
+		interact.seeOutcome(outcome);
+	});
+
+	exit();
 });

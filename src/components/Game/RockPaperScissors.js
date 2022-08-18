@@ -5,7 +5,7 @@ import { Container, Navbar, Spinner } from 'react-bootstrap';
 import rock from '../pngs/rps-rock.png';
 import paper from '../pngs/rps-ariplane.png';
 import scissors from '../pngs/rps-scissors.com.png';
-import outcome from './Outcome';
+
 const RockPaperScissors = ({
 	loading,
 	resolve,

@@ -1,17 +1,17 @@
 import React, { useState, useCallback, useRef } from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 import 'bootstrap/dist/css/bootstrap.min.css';
-import { useNavigate } from 'react-router-dom';
-import * as backend from '../build/index.main.mjs';
+
 import Alice from '../Players/Alice';
 import Bob from '../Players/Bob';
 const Deploy = ({
 	account,
-	setRole,
+	setGame,
 	balance,
 	resolve,
 	address,
-	role,
+	user,
+	setUser,
 	createContract,
 	ctcInfo,
 	setCtcInfo,
@@ -20,7 +20,7 @@ const Deploy = ({
 	const [show, setShow] = useState(false);
 	return (
 		<div style={{ display: 'grid', textAlign: 'center', paddingTop: '16vh' }}>
-			<h1 style={{ fontSize: '40px' }}>Rock, Paper, Scissors</h1>
+			<h1 style={{ fontSize: '40px' }}>Game Room</h1>
 			<Form>
 				<Form.Group className='mb-3' controlId='formBasicEmail'>
 					<Form.Label style={{ paddingTop: '2vh', fontSize: '20px' }}>
@@ -35,7 +35,7 @@ const Deploy = ({
 					}}>
 					<Button
 						onClick={(e) => {
-							setRole(e.target.value);
+							setUser({ ...user, role: e.target.value });
 							setShow(true);
 						}}
 						name='alice'
@@ -50,7 +50,7 @@ const Deploy = ({
 
 					<Button
 						onClick={(e) => {
-							setRole('Bob');
+							setUser({ role: 'Bob' });
 							setShow(true);
 						}}
 						name='Bob'
@@ -62,12 +62,14 @@ const Deploy = ({
 					</Button>
 				</div>
 			</Form>
-			{role !== 'Bob' ? (
+			{user.role !== 'Bob' ? (
 				<Alice
-					role={role}
+					setGame={setGame}
+					user={user}
 					balance={balance}
 					address={address}
 					show={show}
+					setUser={setUser}
 					setShow={setShow}
 					ctcInfo={ctcInfo}
 					setCtcInfo={setCtcInfo}
@@ -76,9 +78,9 @@ const Deploy = ({
 				/>
 			) : (
 				<Bob
-					setRole={setRole}
+					user={user}
 					resolve={resolve}
-					role={role}
+					setUser={setUser}
 					balance={balance}
 					address={address}
 					show={show}
