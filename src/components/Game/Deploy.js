@@ -5,13 +5,14 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Alice from '../Players/Alice';
 import Bob from '../Players/Bob';
 const Deploy = ({
+	game,
 	account,
 	setGame,
 	balance,
 	resolve,
 	address,
-	user,
-	setUser,
+	role,
+	setRole,
 	createContract,
 	ctcInfo,
 	setCtcInfo,
@@ -35,7 +36,7 @@ const Deploy = ({
 					}}>
 					<Button
 						onClick={(e) => {
-							setUser({ ...user, role: e.target.value });
+							setRole(e.target.value);
 							setShow(true);
 						}}
 						name='alice'
@@ -50,7 +51,7 @@ const Deploy = ({
 
 					<Button
 						onClick={(e) => {
-							setUser({ role: 'Bob' });
+							setRole('Bob');
 							setShow(true);
 						}}
 						name='Bob'
@@ -62,14 +63,14 @@ const Deploy = ({
 					</Button>
 				</div>
 			</Form>
-			{user.role !== 'Bob' ? (
+			{role !== 'Bob' ? (
 				<Alice
+					game={game}
 					setGame={setGame}
-					user={user}
+					role={role}
 					balance={balance}
 					address={address}
 					show={show}
-					setUser={setUser}
 					setShow={setShow}
 					ctcInfo={ctcInfo}
 					setCtcInfo={setCtcInfo}
@@ -78,9 +79,9 @@ const Deploy = ({
 				/>
 			) : (
 				<Bob
-					user={user}
+					role={role}
 					resolve={resolve}
-					setUser={setUser}
+					setRole={setRole}
 					balance={balance}
 					address={address}
 					show={show}

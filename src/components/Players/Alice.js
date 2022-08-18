@@ -1,7 +1,8 @@
 import React from 'react';
 import { Button, Form, Modal } from 'react-bootstrap';
 const Alice = ({
-	user,
+	role,
+	game,
 	setGame,
 	show,
 	setShow,
@@ -12,7 +13,7 @@ const Alice = ({
 }) => {
 	return (
 		<div>
-			{user.role === 'Alice' && ctcInfo ? (
+			{role === 'Alice' && ctcInfo ? (
 				<Modal
 					style={{ marginTop: '80px' }}
 					show={show}
@@ -70,9 +71,7 @@ const Alice = ({
 							display: 'grid',
 							gridTemplateColumns: '2fr 1fr 0.5fr',
 						}}>
-						<Form.Select
-							value={user.game}
-							onChange={(e) => setGame(e.target.value)}>
+						<Form.Select value={game} onChange={(e) => setGame(e.target.value)}>
 							<option value={undefined}>Choose your game</option>
 							<option value='rps'>Rock Paper Scissors</option>
 							<option value='morra'>Morra</option>

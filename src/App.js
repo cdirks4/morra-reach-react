@@ -13,8 +13,9 @@ import Morra from './components/Game/Morra/Morra.js';
 const reach = loadStdlib('ALGO');
 const App = () => {
 	// const [backend, setBackend] = useState();
-	const [backend, setBackend] = useState(RPSbackend);
-	const [user, setUser] = useState({ role: undefined });
+	// const [backend, setBackend] = useState(RPSbackend);
+	const backend = useRef(RPSbackend);
+	const [role, setRole] = useState();
 	const [mLoading, setMLoading] = useState(true);
 	const [outcome, setOutcome] = useState(null);
 	const [hand, setHand] = useState(null);
@@ -104,30 +105,29 @@ const App = () => {
 				setOutcome(outcome);
 			},
 		};
-		console.log(game);
+
 		if (game === 'rps') {
-			setBackend(RPSbackend);
 			player.deadline = { ETH: 10, ALGO: 100, CFX: 1000 }[reach.connector];
 			player.getHand = handleHand;
+			backend.current = RPSbackend;
 		} else if (game === 'morra') {
-			setBackend(MORRAbackend);
-
 			player.getFingersAndGuess = handleChoice;
+			backend.current = MORRAbackend;
 		}
 
-		if (user.role === 'Alice') {
+		if (role === 'Alice') {
 			if (!wagerRef.current.value || isNaN(wagerRef.current.value))
 				throw 'Cannot fund this value';
 			const interact = {
 				...player,
 				wager: reach.parseCurrency(wagerRef.current.value),
 			};
-			const contract = await account.contract(backend);
-			backend.Alice(contract, interact);
+			const contract = await account.contract(backend.current);
+			backend.current.Alice(contract, interact);
 			const ctcInfoStr = JSON.stringify(await contract.getInfo(), null, 2);
 			ctcRef.current = ctcInfoStr;
 			setCtcInfo(ctcInfoStr);
-		} else if (user.role === 'Bob') {
+		} else if (role === 'Bob') {
 			try {
 				const interact = {
 					...player,
@@ -136,8 +136,8 @@ const App = () => {
 						setWager(reach.formatCurrency(wager));
 					},
 				};
-				const ctc = await account.contract(backend, JSON.parse(ctcRef));
-				backend.Bob(ctc, interact);
+				const ctc = await account.contract(backend.current, JSON.parse(ctcRef));
+				backend.current.Bob(ctc, interact);
 			} catch (err) {
 				console.log(err);
 			}
@@ -165,6 +165,7 @@ const App = () => {
 					path='/'
 					element={
 						<Deploy
+							game={game}
 							setGame={setGame}
 							address={address}
 							ctcInfo={ctcInfo}
@@ -173,8 +174,8 @@ const App = () => {
 							wagerRef={wagerRef}
 							wager={wager}
 							balance={balance}
-							user={user}
-							setUser={setUser}
+							role={role}
+							setRole={setRole}
 							reach={reach}
 							resolve={resolve}
 							account={account}
@@ -190,7 +191,7 @@ const App = () => {
 							hand={hand}
 							resolve={resolve}
 							loading={loading}
-							role={user.role}
+							role={role}
 							prevGuesses={prevGuesses}
 						/>
 					}></Route>
@@ -206,7 +207,7 @@ const App = () => {
 					element={
 						<Morra
 							outcome={outcome}
-							role={user.role}
+							role={role}
 							resolve={resolve}
 							mLoading={mLoading}
 							setChoice={setChoice}
