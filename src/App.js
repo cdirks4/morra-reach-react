@@ -2,10 +2,8 @@ import React, { useState, useRef } from 'react';
 import { loadStdlib } from '@reach-sh/stdlib';
 import * as MORRAbackend from './build/index.morra.mjs';
 import * as RPSbackend from './build/index.rps.mjs';
-
 import { Container } from 'react-bootstrap';
 import { Routes, Route, useNavigate } from 'react-router-dom';
-
 import NavBarComponent from './components/NavBarComponent/NavBar';
 import Deploy from './components/Game/Deploy';
 import Outcome from './components/Game/Outcome';
@@ -15,6 +13,7 @@ import Morra from './components/Game/Morra/Morra.js';
 const reach = loadStdlib('ALGO');
 const App = () => {
 	// const [backend, setBackend] = useState();
+	const [backend, setBackend] = useState(RPSbackend);
 	const [user, setUser] = useState({ role: undefined });
 	const [mLoading, setMLoading] = useState(true);
 	const [outcome, setOutcome] = useState(null);
@@ -105,66 +104,40 @@ const App = () => {
 				setOutcome(outcome);
 			},
 		};
-		// if (game === 'rps') {
-		// 	setBackend(RPSbackend);
-		// 	player.deadline = { ETH: 10, ALGO: 100, CFX: 1000 }[reach.connector];
-		// 	player.getHand = handleHand;
-		// } else if (game === 'morra') {
-		// 	setBackend(MORRAbackend);
-		// 	player.getFingersAndGuess = handleChoice;
-		// }
+		console.log(game);
+		if (game === 'rps') {
+			setBackend(RPSbackend);
+			player.deadline = { ETH: 10, ALGO: 100, CFX: 1000 }[reach.connector];
+			player.getHand = handleHand;
+		} else if (game === 'morra') {
+			setBackend(MORRAbackend);
+
+			player.getFingersAndGuess = handleChoice;
+		}
 
 		if (user.role === 'Alice') {
 			if (!wagerRef.current.value || isNaN(wagerRef.current.value))
 				throw 'Cannot fund this value';
 			const interact = {
 				...player,
-				// deadline: 100,
-				getFingersAndGuess: handleChoice,
 				wager: reach.parseCurrency(wagerRef.current.value),
 			};
-			// backend.Alice(contract, interact);
-			// if (game === 'rps') {
-			// 	const contract = await account.contract(RPSbackend);
-			// 	interact.deadline = interact.deadline = {
-			// 		ETH: 10,
-			// 		ALGO: 100,
-			// 		CFX: 1000,
-			// 	}[reach.connector];
-			// 	interact.getHand = handleHand;
-			// 	RPSbackend.Alice(contract, interact);
-			// 	const ctcInfoStr = JSON.stringify(await contract.getInfo(), null, 2);
-			// 	ctcRef.current = ctcInfoStr;
-			// 	setCtcInfo(ctcInfoStr);
-			// } else if (game === 'morra') {
-			const contract = await account.contract(MORRAbackend);
-			interact.getFingersAndGuess = handleChoice;
-			MORRAbackend.Alice(contract, interact);
+			const contract = await account.contract(backend);
+			backend.Alice(contract, interact);
 			const ctcInfoStr = JSON.stringify(await contract.getInfo(), null, 2);
 			ctcRef.current = ctcInfoStr;
 			setCtcInfo(ctcInfoStr);
-			// }
 		} else if (user.role === 'Bob') {
 			try {
 				const interact = {
 					...player,
-					getFingersAndGuess: handleChoice,
 					acceptWager: (wager) => {
 						console.log('accepted');
 						setWager(reach.formatCurrency(wager));
 					},
 				};
-				// if (game === 'rps') {
-				// 	const ctc = await account.contract(RPSbackend, JSON.parse(ctcRef));
-				// 	interact.getHand = handleHand;
-				// 	RPSbackend.Bob(ctc, interact);
-				// } else if (game === 'morra') {
-				const ctc = await account.contract(MORRAbackend, JSON.parse(ctcRef));
-
-				MORRAbackend.Bob(ctc, interact);
-				// }
-
-				// backend.Bob(ctc, interact);
+				const ctc = await account.contract(backend, JSON.parse(ctcRef));
+				backend.Bob(ctc, interact);
 			} catch (err) {
 				console.log(err);
 			}

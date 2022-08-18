@@ -75,7 +75,7 @@ const Alice = ({
 							onChange={(e) => setGame(e.target.value)}>
 							<option value={undefined}>Choose your game</option>
 							<option value='rps'>Rock Paper Scissors</option>
-							<option value={'morra'}>Morra</option>
+							<option value='morra'>Morra</option>
 						</Form.Select>
 						<Form.Control
 							style={{
